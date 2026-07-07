@@ -1,0 +1,12 @@
+{
+  "name": "Remix: Remix: Remix: DEEP SHOP - BORDER CROSS",
+  "description": "Premium e-commerce platform for mobile accessories and gadgets with a powerful admin panel and Firebase integration.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

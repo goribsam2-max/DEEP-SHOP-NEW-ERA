@@ -1,0 +1,37 @@
+pages/ForgotPassword.tsx:          <Button
+pages/ForgotPassword.tsx:          <Button
+pages/SignIn.tsx:        <Button
+pages/SignIn.tsx:      <Button 
+pages/Profile.tsx:                <Button
+pages/Profile.tsx:                    <Button
+pages/Profile.tsx:              <Button
+pages/ProductDetails.tsx:              <Button onClick={toggleWishlist} variant="ghost" size="icon" className={isWishlisted ? "text-red-500" : ""}>
+pages/ProductDetails.tsx:              <Button onClick={() => {
+pages/ProductDetails.tsx:                <Button variant="outline" size="sm" className="gap-2" onClick={() => setFullScreenImg(images[activeImg])}>
+pages/ProductDetails.tsx:                <Button size="lg" className="flex-1 gap-2 rounded-full py-6 text-base" onClick={handleNotifyMe}>
+pages/ProductDetails.tsx:                  <Button onClick={() => addToCart(false)} disabled={addingToCart} variant="outline" size="lg" className="flex-1 gap-2 rounded-full py-6 text-base border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900">
+pages/ProductDetails.tsx:                  <Button onClick={() => addToCart(true)} size="lg" className="flex-[1.5] gap-2 rounded-full py-6 text-base shadow-lg shadow-emerald-500/20 bg-emerald-600 hover:bg-emerald-700 text-white border-none">
+pages/ProductDetails.tsx:                  <Button variant="ghost" size="sm" className="text-emerald-600 dark:text-emerald-400 text-xs font-bold" onClick={() => navigate('/all-products')}>
+pages/ProductDetails.tsx:                <Button onClick={handleBundleAddToCart} disabled={addingBundle} variant="default" className="rounded-full shadow-sm text-sm bg-emerald-600 hover:bg-emerald-700 text-white w-full sm:w-auto">
+pages/AuthSelector.tsx:        <Button 
+pages/AuthSelector.tsx:        <Button 
+pages/AuthSelector.tsx:        <Button 
+pages/AuthSelector.tsx:        <Button 
+pages/AuthSelector.tsx:        <Button 
+pages/SignUp.tsx:        <Button
+pages/SignUp.tsx:      <Button 
+pages/Checkout.tsx:            <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="flex items-center gap-1 rounded-2xl">
+pages/Checkout.tsx:                      <Button variant="outline" className="w-full mt-2 border-dashed" onClick={() => setIsAddingNewAddress(true)}>+ Add New Address</Button>
+pages/Checkout.tsx:                         <Button onClick={handleSaveAddress}>Save Address</Button>
+pages/Checkout.tsx:                         {savedAddresses.length > 0 && <Button variant="ghost" onClick={() => setIsAddingNewAddress(false)}>Cancel</Button>}
+pages/Checkout.tsx:                  <Button onClick={nextStep} disabled={!validateStep(1)} size="default" className="text-xs sm:text-sm px-4 sm:px-6">Continue</Button>
+pages/Checkout.tsx:                  <Button variant="ghost" className="text-xs sm:text-sm px-2 sm:px-4" onClick={prevStep}><ChevronLeft className="mr-1 h-3 w-3 sm:h-4 sm:w-4" /> Back</Button>
+pages/Checkout.tsx:                  <Button onClick={nextStep} disabled={!validateStep(2)} size="default" className="text-xs sm:text-sm px-4 sm:px-6">{paymentType === "cod" ? "Review Order" : "Continue to Payment"}</Button>
+pages/Checkout.tsx:                                  <Button size="sm" variant="outline" className="w-full sm:w-auto text-xs" onClick={() => navigator.clipboard.writeText((bankingMethod === 'bkash' ? settings?.bkashNumber : settings?.nagadNumber) || "01778953114")}>Copy Number</Button>
+pages/Checkout.tsx:                  <Button variant="ghost" className="text-xs sm:text-sm px-2 sm:px-4" onClick={prevStep}><ChevronLeft className="mr-1 h-3 w-3 sm:h-4 sm:w-4" /> Back</Button>
+pages/Checkout.tsx:                  <Button onClick={nextStep} disabled={!validateStep(3)} size="default" className="text-xs sm:text-sm px-4 sm:px-6">Review Order</Button>
+pages/Checkout.tsx:                  <Button variant="ghost" className="text-xs sm:text-sm px-2 sm:px-4" onClick={prevStep}><ChevronLeft className="mr-1 h-3 w-3 sm:h-4 sm:w-4" /> Back</Button>
+pages/Checkout.tsx:                  <Button onClick={placeOrder} disabled={!validateStep(4) || isLoading} size="default" className="bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 text-white border-0 text-xs sm:text-sm px-4 sm:px-6 flex-1 sm:flex-none">
+pages/Checkout.tsx:                      <Button onClick={applyPromo} variant="outline" size="sm" className="h-10 text-xs shrink-0">Apply</Button>
+pages/Cart.tsx:            <Button size="lg" onClick={() => navigate("/")} className="rounded-full shadow-lg shadow-emerald-500/20 bg-emerald-500 hover:bg-emerald-600 border-none text-white dark:text-white dark:bg-emerald-500 font-bold">
+pages/Cart.tsx:                    <Button

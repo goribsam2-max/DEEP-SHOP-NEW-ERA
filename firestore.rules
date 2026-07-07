@@ -1,0 +1,104 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      // In this app, admins are defined by having a role field of 'admin' in their user document,
+      // or using the hardcoded admin email whitelist.
+      return isSignedIn() && (
+        request.auth.token.email == 'admin@vibe.shop' ||
+        request.auth.token.email == 'deepshopbysam@gmail.com' ||
+        request.auth.token.email == 'deepshop@gmail.com'
+      );
+    }
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Settings Collection
+    match /settings/{settingId} {
+      // Settings should be publicly readable so the frontend can load store configs,
+      // but only admin users can write/edit settings.
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      // Users can read and write their own documents. Admins can read and write all users.
+      allow read, write: if isOwner(userId) || isAdmin();
+      // Allow creation during register/signup even if not fully populated yet
+      allow create: if isSignedIn();
+    }
+
+    // Products Collection
+    match /products/{productId} {
+      // Products are publicly readable, but only admins can create, update, or delete.
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Reviews Collection
+    match /reviews/{reviewId} {
+      // Reviews are publicly readable. Authenticated users can write reviews, and admins can manage them.
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+    }
+
+    // Blogs Collection
+    match /blogs/{blogId} {
+      // Blogs are publicly readable, only admins can write.
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Tickets Collection (Helpcenter)
+    match /tickets/{ticketId} {
+      // Users can create and read/write their own support tickets. Admins can manage all.
+      allow create: if isSignedIn();
+      allow read, update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+    }
+
+    // Orders Collection
+    match /orders/{orderId} {
+      // Users can create and read their own orders. Admins can read/write all orders.
+      allow create: if isSignedIn();
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
+    // Coupons Collection
+    match /coupons/{couponId} {
+      // Coupons are readable by any authenticated user (or publicly to validate on checkout), but only writable by admins.
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Chats/Messages Collection
+    match /chats/{chatId} {
+      allow read, write: if isSignedIn() || isAdmin();
+    }
+
+    match /chats/{chatId}/messages/{messageId} {
+      allow read, write: if isSignedIn() || isAdmin();
+    }
+
+    // Banners/Sliders Collection
+    match /banners/{bannerId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

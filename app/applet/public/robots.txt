@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /profile
+Disallow: /admin
+Disallow: /cart
+Disallow: /checkout
+Disallow: /my-orders
+
+Sitemap: https://www.deepshop.top/sitemap.xml
