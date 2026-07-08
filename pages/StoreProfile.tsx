@@ -243,20 +243,22 @@ export default function StoreProfile() {
     const filledCount = rating % 1 > 0.7 ? fullStars + 1 : fullStars;
     
     return (
-      <div className="flex items-center justify-center sm:justify-start gap-0.5 mt-2">
-        {Array.from({ length: 5 }).map((_, i) => {
-          const isFilled = i < filledCount;
-          return (
-            <Star
-              key={i}
-              className={`w-3.5 h-3.5 ${
-                isFilled ? "text-amber-500 fill-amber-500" : "text-zinc-300 dark:text-zinc-700"
-              }`}
-            />
-          );
-        })}
-        <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400 ml-1.5">
-          {rating > 0 ? `${rating} Store Rating` : "0.0 Store Rating"}
+      <div className="flex items-center justify-center sm:justify-start gap-1.5 mt-2 flex-wrap min-w-0">
+        <div className="flex items-center gap-0.5 shrink-0">
+          {Array.from({ length: 5 }).map((_, i) => {
+            const isFilled = i < filledCount;
+            return (
+              <Star
+                key={i}
+                className={`w-3.5 h-3.5 shrink-0 ${
+                  isFilled ? "text-amber-500 fill-amber-500" : "text-zinc-300 dark:text-zinc-700"
+                }`}
+              />
+            );
+          })}
+        </div>
+        <span className="text-[10px] font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0 flex items-center justify-center">
+          {rating > 0 ? `${rating} Star Rating` : "0.0 Star Rating"}
         </span>
       </div>
     );
@@ -359,12 +361,12 @@ export default function StoreProfile() {
         {/* Latest Products section */}
         {latestProducts.length > 0 && (
           <div className="mb-10">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4.5 h-4.5 text-[#EF8020]" />
-                <h2 className="text-lg font-extrabold text-zinc-950 dark:text-zinc-50 tracking-tight uppercase">Newly Arrived Products</h2>
+            <div className="flex items-center justify-between gap-4 mb-4 min-w-0">
+              <div className="flex items-center gap-2 min-w-0">
+                <Calendar className="w-4.5 h-4.5 text-[#EF8020] shrink-0" />
+                <h2 className="text-lg font-extrabold text-zinc-950 dark:text-zinc-50 tracking-tight uppercase whitespace-nowrap truncate">Newly Arrived Products</h2>
               </div>
-              <span className="text-xs font-semibold text-zinc-400">By date added</span>
+              <span className="text-xs font-semibold text-zinc-400 whitespace-nowrap shrink-0">By date added</span>
             </div>
             {/* Grid layout */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -450,20 +452,18 @@ export default function StoreProfile() {
 
         {/* MERCHANT REVIEWS SECTION (Stylish Horizontal Scroll) */}
         <div className="mt-12 pt-8 border-t border-zinc-200/60 dark:border-zinc-800/60">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2.5">
-              <div className="w-1.5 h-5 bg-amber-500 rounded-full"></div>
-              <h3 className="text-lg font-extrabold text-zinc-900 dark:text-white uppercase tracking-tight">Merchant Reviews</h3>
-              <span className="bg-amber-100 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
+          <div className="flex items-center justify-between gap-4 mb-6 min-w-0">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-1.5 h-5 bg-amber-500 rounded-full shrink-0"></div>
+              <h3 className="text-lg font-extrabold text-zinc-900 dark:text-white uppercase tracking-tight whitespace-nowrap truncate">Merchant Reviews</h3>
+              <span className="bg-amber-100 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 text-[10px] font-bold px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0 flex items-center justify-center">
                 {reviews.length + userReviews.length} Reviews
               </span>
             </div>
-            {sellerRating > 0 && (
-              <div className="flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-black px-2.5 py-1 rounded-xl">
-                <Star className="w-3.5 h-3.5 fill-amber-500" />
-                <span>{sellerRating} Rating</span>
-              </div>
-            )}
+            <div className="flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-black px-2.5 py-1 rounded-full whitespace-nowrap shrink-0">
+              <Star className="w-3.5 h-3.5 fill-amber-500 shrink-0" />
+              <span>{sellerRating > 0 ? `${sellerRating} Star Rating` : "0.0 Star Rating"}</span>
+            </div>
           </div>
 
           {reviews.length + userReviews.length === 0 ? (

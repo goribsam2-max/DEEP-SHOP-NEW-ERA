@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { db, auth } from '../../firebase';
-import { collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Send, User, ChevronLeft, Bot, Mic, Radio } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import VoiceMessageBubble from '../../components/ui/voice-message-bubble';
@@ -49,11 +49,11 @@ export default function ManageChats() {
   useEffect(() => {
     // When a chat is selected, mark activeUserId and load messages
     if (!selectedChat) {
-      updateDoc(doc(db, 'settings', 'adminChatStatus'), { activeUserId: null }).catch(console.error);
+      setDoc(doc(db, 'settings', 'adminChatStatus'), { activeUserId: null }, { merge: true }).catch(console.error);
       return;
     }
 
-    updateDoc(doc(db, 'settings', 'adminChatStatus'), { activeUserId: selectedChat.id }).catch(console.error);
+    setDoc(doc(db, 'settings', 'adminChatStatus'), { activeUserId: selectedChat.id }, { merge: true }).catch(console.error);
 
     const msgQ = query(collection(db, `userChats/${selectedChat.id}/messages`), orderBy('createdAt', 'asc'));
     const msgsUnsub = onSnapshot(msgQ, (snap) => {

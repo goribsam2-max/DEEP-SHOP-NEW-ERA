@@ -29,11 +29,23 @@ async function generateSitemap() {
     let urls = "";
     
     const today = new Date().toISOString().split('T')[0];
+    const getSitemapDate = (val) => {
+      if (!val) return null;
+      if (typeof val.toMillis === "function") {
+        return new Date(val.toMillis()).toISOString().split('T')[0];
+      }
+      const d = new Date(val);
+      if (!isNaN(d.getTime())) {
+        return d.toISOString().split('T')[0];
+      }
+      return null;
+    };
+
     snapshot.forEach((doc) => {
       const data = doc.data();
       if (data.name) {
         const slug = toSlug(data.name);
-        const lastMod = data.updatedAt ? new Date(data.updatedAt.toMillis()).toISOString().split('T')[0] : (data.createdAt ? new Date(data.createdAt.toMillis()).toISOString().split('T')[0] : today);
+        const lastMod = getSitemapDate(data.updatedAt) || getSitemapDate(data.createdAt) || today;
         urls += `
   <url>
     <loc>https://www.deepshop.top/${slug}</loc>
