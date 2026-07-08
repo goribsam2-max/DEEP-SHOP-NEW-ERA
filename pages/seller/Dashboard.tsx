@@ -1277,13 +1277,46 @@ const SellerDashboard: React.FC = () => {
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                   <h4 className="text-xs font-bold text-zinc-500 uppercase mb-2">Shipping Information</h4>
-                                  <div className="text-sm bg-white dark:bg-zinc-900 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-1">
+                                  <div className="text-sm bg-white dark:bg-zinc-900 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-1 mb-4">
                                     <p><span className="font-medium text-zinc-400">Name:</span> {order.customerName}</p>
                                     <p><span className="font-medium text-zinc-400">Phone:</span> {order.contactNumber}</p>
                                     <p><span className="font-medium text-zinc-400">Address:</span> {order.shippingAddress}</p>
                                     {order.altNumber && <p><span className="font-medium text-zinc-400">Alt Phone:</span> {order.altNumber}</p>}
-                                    <p><span className="font-medium text-zinc-400">Payment:</span> {order.paymentMethod} ({order.paymentOption})</p>
-                                    {order.transactionId && <p><span className="font-medium text-zinc-400">Transaction ID:</span> {order.transactionId}</p>}
+                                  </div>
+
+                                  <h4 className="text-xs font-bold text-zinc-500 uppercase mb-2">Payment & Transaction Details</h4>
+                                  <div className="text-sm bg-white dark:bg-zinc-900 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-1">
+                                    <p>
+                                      <span className="font-medium text-zinc-400">Payment Method:</span>{" "}
+                                      <span className="font-bold text-emerald-600 dark:text-emerald-400 uppercase">
+                                        {order.paymentMethod || "COD"}
+                                      </span>
+                                    </p>
+                                    <p>
+                                      <span className="font-medium text-zinc-400">Type:</span> {order.paymentOption || "Standard Checkout"}
+                                    </p>
+                                    {order.advanceAmount !== undefined && order.advanceAmount !== null && (
+                                      <p>
+                                        <span className="font-medium text-zinc-400">Advance Paid:</span>{" "}
+                                        <span className="font-bold text-[#EF8020]">৳{order.advanceAmount}</span>
+                                      </p>
+                                    )}
+                                    {order.accountNameSender && (
+                                      <p>
+                                        <span className="font-medium text-zinc-400">Sender Number:</span>{" "}
+                                        <span className="font-mono text-zinc-800 dark:text-zinc-200 font-bold">{order.accountNameSender}</span>
+                                      </p>
+                                    )}
+                                    {order.transactionId ? (
+                                      <p>
+                                        <span className="font-medium text-zinc-400">Transaction ID (TrxID):</span>{" "}
+                                        <span className="font-mono bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-xs text-[#EF8020] font-black tracking-wider">
+                                          {order.transactionId}
+                                        </span>
+                                      </p>
+                                    ) : (
+                                      <p className="text-xs text-amber-600 dark:text-amber-400 font-semibold italic">No Transaction ID submitted yet.</p>
+                                    )}
                                   </div>
                                 </div>
                                 <div>

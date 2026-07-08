@@ -307,6 +307,21 @@ export default function Messages() {
       timestamp: Date.now(),
     });
     
+    // Send a real push notification to the recipient!
+    const recipientId = activeChat.otherUser?.id;
+    if (recipientId && recipientId !== "system") {
+      fetch("/api/send-push-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: recipientId,
+          title: user.displayName || "New Message",
+          body: messageText || "Sent an image",
+          link: `/messages?chatId=${user.uid}`
+        })
+      }).catch(err => console.error("Message push notification failed:", err));
+    }
+    
     // Local push notification simulation for the other user receiving it (this would normally be Cloud Functions)
     if (Notification.permission === 'granted') {
         // Just for demo, we don't send notification to ourselves
@@ -415,6 +430,18 @@ export default function Messages() {
         timestamp: Date.now()
       });
       setCurrentCallId(callRef.id);
+
+      // Send push notification to receiver!
+      fetch("/api/send-push-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: activeChat.otherUser.id,
+          title: `Incoming ${type === 'audio' ? 'Voice' : 'Video'} Call...`,
+          body: `${user.displayName || 'Someone'} is calling you on Vibe Gadget.`,
+          link: `/messages?chatId=${user.uid}&autoCall=true`
+        })
+      }).catch(err => console.error("Call push notification failed:", err));
     } catch (e) {
       console.error("Failed to start call:", e);
       setIsCalling(false);

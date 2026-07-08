@@ -456,6 +456,25 @@ export default function CheckoutPage() {
 
       const docRef = await addDoc(collection(db, "orders"), orderData);
 
+      // Notify sellers of the new order
+      try {
+        const uniqueSellerIds = Array.from(new Set(orderData.items.map(item => item.sellerId).filter(Boolean)));
+        uniqueSellerIds.forEach((sellerId) => {
+          fetch("/api/send-push-user", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userId: sellerId,
+              title: "New Customer Order! 🛍️",
+              body: `You received a new order from ${activeAddress.name} for ৳${total}.`,
+              link: "/seller/dashboard"
+            })
+          }).catch(err => console.error("Seller push notification failed:", err));
+        });
+      } catch (e) {
+        console.error("Failed to send seller push notification:", e);
+      }
+
       if (orderData.affiliateRef) {
         try {
           const { increment } = await import("firebase/firestore");
