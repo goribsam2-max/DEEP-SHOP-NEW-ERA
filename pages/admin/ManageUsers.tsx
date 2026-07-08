@@ -34,7 +34,7 @@ const ManageUsers: React.FC = () => {
   useEffect(() => {
     const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snap) => {
-      setUsers(snap.docs.map((d) => ({ ...d.data() }) as UserProfile));
+      setUsers(snap.docs.map((d) => ({ uid: d.id, ...d.data() }) as UserProfile));
     });
     return unsubscribe;
   }, []);

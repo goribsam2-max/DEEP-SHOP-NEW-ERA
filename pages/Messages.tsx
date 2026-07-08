@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Phone, Video, VideoOff, Paperclip, Send, X, PhoneOff, Mic, MicOff, Volume2, Image as ImageIcon, CheckCheck, Clock, ChevronLeft, User, Search, AlertCircle, MessageSquareShare } from 'lucide-react';
+import { Phone, Video, VideoOff, Paperclip, Send, X, PhoneOff, Mic, MicOff, Volume2, Image as ImageIcon, CheckCheck, Clock, ChevronLeft, User, Search, AlertCircle, MessageSquareShare, Star, Sparkles } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { subscribeToWebPush } from '../lib/push';
 import SEO from '../components/SEO';
@@ -73,6 +73,36 @@ export default function Messages() {
   const [callStatus, setCallStatus] = useState<'connecting' | 'ringing' | 'connected'>('connecting');
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeaker, setIsSpeaker] = useState(false);
+
+  // Review states
+  const [hasReviewed, setHasReviewed] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewText, setReviewText] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
+  useEffect(() => {
+    if (!user || !activeChat || !activeChat.otherUser?.id) {
+      setHasReviewed(false);
+      return;
+    }
+    
+    const checkReview = async () => {
+      try {
+        const q = query(
+          collection(db, "user_reviews"),
+          where("reviewerId", "==", user.uid),
+          where("revieweeId", "==", activeChat.otherUser.id)
+        );
+        const snap = await getDocs(q);
+        setHasReviewed(!snap.empty);
+      } catch (err) {
+        console.error("Error checking review:", err);
+      }
+    };
+    
+    checkReview();
+  }, [activeChat, user]);
 
   // Effect 1: Listen for user's chats (No orderBy in query to avoid index requirements, sorted in memory)
   useEffect(() => {
@@ -482,6 +512,58 @@ export default function Messages() {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
+  const handleSubmitReview = async () => {
+    if (!user || !activeChat || !activeChat.otherUser?.id) return;
+    setIsSubmittingReview(true);
+    try {
+      await addDoc(collection(db, "user_reviews"), {
+        reviewerId: user.uid,
+        reviewerName: user.displayName || user.email?.split("@")[0] || "Someone",
+        reviewerPhoto: user.photoURL || "",
+        revieweeId: activeChat.otherUser.id,
+        rating: reviewRating,
+        comment: reviewText.trim(),
+        createdAt: Date.now(),
+        chatId: activeChat.id || "p2p"
+      });
+
+      const reviewerName = user.displayName || "Someone";
+      const revieweeName = activeChat.otherUser.displayName || activeChat.otherUser.shopName || "User";
+
+      fetch("/api/send-push-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: activeChat.otherUser.id,
+          title: "New Review Received! ⭐",
+          body: `${reviewerName} gave you a ${reviewRating}-star rating: "${reviewText.trim() || 'Excellent!'}"`,
+          link: `/store/${activeChat.otherUser.id}`
+        })
+      }).catch(err => console.error("Push to reviewee failed:", err));
+
+      fetch("/api/send-push-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.uid,
+          title: "Review Submitted! 🎉",
+          body: `You successfully rated ${revieweeName} ${reviewRating} Stars!`,
+          link: "/messages"
+        })
+      }).catch(err => console.error("Push to reviewer failed:", err));
+
+      setHasReviewed(true);
+      setShowReviewModal(false);
+      setReviewText("");
+      notify("Review submitted successfully!", "success");
+    } catch (err) {
+      console.error("Error submitting review:", err);
+      notify("Failed to submit review", "error");
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
   if (!user) {
     return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] bg-zinc-50 dark:bg-zinc-950 font-inter">
@@ -609,15 +691,6 @@ export default function Messages() {
                          >
                              <Phone className="w-4.5 h-4.5" />
                          </button>
-                         
-                         <button 
-                           type="button"
-                           onClick={() => startCall('video')} 
-                           className="p-2.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:text-blue-500 dark:hover:text-blue-400 rounded-xl transition" 
-                           title="Video Call"
-                         >
-                             <Video className="w-4.5 h-4.5" />
-                         </button>
                      </div>
                  </div>
 
@@ -675,6 +748,29 @@ export default function Messages() {
                              </div>
                          );
                      })}
+                     {!hasReviewed && activeChat.otherUser?.id !== "system" && (messages.length >= 4 || (messages.length > 0 && (Date.now() - messages[messages.length - 1].timestamp) > 3600000)) && (
+                       <div className="flex justify-center my-6">
+                         <div 
+                           className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-zinc-900/90 dark:to-zinc-950/90 border border-amber-200 dark:border-zinc-800 rounded-2xl p-4 max-w-sm w-full text-center shadow-md hover:shadow-lg transition cursor-pointer border-dashed" 
+                           onClick={() => { setShowReviewModal(true); }}
+                         >
+                           <div className="flex items-center justify-center gap-1.5 mb-2 text-amber-500">
+                             <Star className="w-5 h-5 fill-amber-500 animate-bounce" />
+                             <Star className="w-5 h-5 fill-amber-500 animate-bounce" />
+                             <Star className="w-5 h-5 fill-amber-500 animate-bounce" />
+                             <Star className="w-5 h-5 fill-amber-500 animate-bounce" />
+                             <Star className="w-5 h-5 fill-amber-500 animate-bounce" />
+                           </div>
+                           <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 flex items-center justify-center gap-1">
+                             <Sparkles className="w-4 h-4 text-amber-500" />
+                             <span>Give a Review</span>
+                           </h4>
+                           <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                             Rate your experience with <strong className="text-[#EF8020]">{activeChat.otherUser?.shopName || activeChat.otherUser?.displayName || "Verified Seller"}</strong>. It will be styled beautifully on their profile page!
+                           </p>
+                         </div>
+                       </div>
+                     )}
                      <div ref={messagesEndRef} />
                  </div>
 
@@ -801,6 +897,95 @@ export default function Messages() {
                 </div>
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Review Dialog Modal */}
+      <AnimatePresence>
+        {showReviewModal && (
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 w-full max-w-md shadow-2xl relative overflow-hidden font-inter"
+            >
+              <button 
+                type="button"
+                onClick={() => setShowReviewModal(false)}
+                className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 hover:text-zinc-600 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="text-center mb-6">
+                <div className="inline-flex p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/20 text-amber-500 mb-3 animate-pulse">
+                  <Star className="w-8 h-8 fill-amber-500" />
+                </div>
+                <h3 className="text-lg font-black text-zinc-900 dark:text-white uppercase tracking-tight">
+                  Leave a Review
+                </h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                  How was your experience trading or chatting with {activeChat?.otherUser?.shopName || activeChat?.otherUser?.displayName || "Verified Seller"}?
+                </p>
+              </div>
+
+              {/* Star Selection */}
+              <div className="flex items-center justify-center gap-2 mb-6">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setReviewRating(star)}
+                    className="p-1 hover:scale-110 active:scale-95 transition"
+                  >
+                    <Star 
+                      className={`w-10 h-10 ${
+                        star <= reviewRating ? "text-amber-500 fill-amber-500" : "text-zinc-300 dark:text-zinc-700"
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+
+              {/* Comment Text */}
+              <div className="mb-6">
+                <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
+                  Review Text (Optional)
+                </label>
+                <textarea
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  placeholder="Tell us more about the trade, behavior, response time..."
+                  rows={4}
+                  className="w-full text-sm bg-zinc-50 dark:bg-zinc-850 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 outline-none focus:ring-2 ring-emerald-500/50 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 resize-none"
+                />
+              </div>
+
+              {/* Submit / Cancel Buttons */}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowReviewModal(false)}
+                  className="flex-1 py-3 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white rounded-2xl font-bold text-sm transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isSubmittingReview}
+                  onClick={handleSubmitReview}
+                  className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold text-sm transition-all shadow-md shadow-emerald-600/10 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-55"
+                >
+                  {isSubmittingReview ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <span>Submit Review</span>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 

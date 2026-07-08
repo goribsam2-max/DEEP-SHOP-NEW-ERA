@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
-import { db } from "../firebase";
+import { collection, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { db, auth } from "../firebase";
 import { useRegion } from "../components/RegionContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -27,7 +27,79 @@ export default function StoreProfile() {
   const [seller, setSeller] = useState<SellerProfile | null>(null);
   const [products, setProducts] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
+  const [userReviews, setUserReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAdminEditModal, setShowAdminEditModal] = useState(false);
+  const [adminEditingReview, setAdminEditingReview] = useState<any | null>(null);
+  const [adminEditRating, setAdminEditRating] = useState(5);
+  const [adminEditText, setAdminEditText] = useState("");
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const uDoc = await getDoc(doc(db, "users", currentUser.uid));
+        if (uDoc.exists() && uDoc.data()?.isAdmin) {
+          setIsAdmin(true);
+        }
+      }
+    };
+    checkAdmin();
+  }, []);
+
+  const handleDeleteReview = async (reviewId: string, isProductReview: boolean) => {
+    if (!window.confirm("Are you sure you want to delete this review?")) return;
+    try {
+      const collectionName = isProductReview ? "reviews" : "user_reviews";
+      await deleteDoc(doc(db, collectionName, reviewId));
+      if (isProductReview) {
+        setReviews(prev => prev.filter(r => r.id !== reviewId));
+      } else {
+        setUserReviews(prev => prev.filter(r => r.id !== reviewId));
+      }
+      alert("Review deleted successfully!");
+    } catch (err) {
+      console.error("Error deleting review:", err);
+      alert("Failed to delete review");
+    }
+  };
+
+  const handleOpenAdminEdit = (review: any, isProductReview: boolean) => {
+    setAdminEditingReview({ ...review, isProductReview });
+    setAdminEditRating(review.rating || 5);
+    setAdminEditText(review.comment || review.text || "");
+    setShowAdminEditModal(true);
+  };
+
+  const handleSaveAdminEdit = async () => {
+    if (!adminEditingReview) return;
+    try {
+      const collectionName = adminEditingReview.isProductReview ? "reviews" : "user_reviews";
+      const reviewDocRef = doc(db, collectionName, adminEditingReview.id);
+      
+      const updateData: any = {
+        rating: adminEditRating,
+        comment: adminEditText
+      };
+
+      await updateDoc(reviewDocRef, updateData);
+
+      if (adminEditingReview.isProductReview) {
+        setReviews(prev => prev.map(r => r.id === adminEditingReview.id ? { ...r, ...updateData } : r));
+      } else {
+        setUserReviews(prev => prev.map(r => r.id === adminEditingReview.id ? { ...r, ...updateData } : r));
+      }
+
+      setShowAdminEditModal(false);
+      setAdminEditingReview(null);
+      alert("Review updated successfully!");
+    } catch (err) {
+      console.error("Error updating review:", err);
+      alert("Failed to update review");
+    }
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -86,16 +158,25 @@ export default function StoreProfile() {
           where("sellerId", "==", sellerId)
         );
         const rSnap = await getDocs(rQuery);
-        rList = rSnap.docs.map(d => d.data());
+        rList = rSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
         if (rList.length === 0 && plist.length > 0) {
           const productIds = plist.map(p => p.id);
           const allReviewsSnap = await getDocs(collection(db, "reviews"));
           rList = allReviewsSnap.docs
-            .map(d => d.data())
+            .map(d => ({ id: d.id, ...d.data() }))
             .filter(r => productIds.includes(r.productId));
         }
         setReviews(rList);
+
+        // 4. Fetch Chat/User reviews
+        const urQuery = query(
+          collection(db, "user_reviews"),
+          where("revieweeId", "==", sellerId)
+        );
+        const urSnap = await getDocs(urQuery);
+        const urList = urSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setUserReviews(urList);
 
       } catch (err) {
         console.error("Error loading store:", err);
@@ -147,9 +228,10 @@ export default function StoreProfile() {
     if (seller && (seller as any).customRating !== undefined && (seller as any).customRating !== null && String((seller as any).customRating).trim() !== "") {
       return Number((seller as any).customRating);
     }
-    if (reviews && reviews.length > 0) {
-      const sum = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
-      return Number((sum / reviews.length).toFixed(1));
+    const combined = [...reviews, ...userReviews];
+    if (combined.length > 0) {
+      const sum = combined.reduce((acc, r) => acc + (r.rating || 0), 0);
+      return Number((sum / combined.length).toFixed(1));
     }
     return 0;
   };
@@ -363,6 +445,182 @@ export default function StoreProfile() {
             <LayoutGrid className="w-12 h-12 text-zinc-400 mx-auto mb-3 animate-pulse" />
             <h3 className="text-lg font-bold">This Store is Stocking Up</h3>
             <p className="text-xs text-zinc-500 mt-1 max-w-sm mx-auto">This merchant hasn't published any items for sale yet. Check back shortly!</p>
+          </div>
+        )}
+
+        {/* MERCHANT REVIEWS SECTION (Stylish Horizontal Scroll) */}
+        <div className="mt-12 pt-8 border-t border-zinc-200/60 dark:border-zinc-800/60">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2.5">
+              <div className="w-1.5 h-5 bg-amber-500 rounded-full"></div>
+              <h3 className="text-lg font-extrabold text-zinc-900 dark:text-white uppercase tracking-tight">Merchant Reviews</h3>
+              <span className="bg-amber-100 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                {reviews.length + userReviews.length} Reviews
+              </span>
+            </div>
+            {sellerRating > 0 && (
+              <div className="flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-black px-2.5 py-1 rounded-xl">
+                <Star className="w-3.5 h-3.5 fill-amber-500" />
+                <span>{sellerRating} Rating</span>
+              </div>
+            )}
+          </div>
+
+          {reviews.length + userReviews.length === 0 ? (
+            <div className="bg-zinc-50 dark:bg-zinc-900/50 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl p-8 text-center">
+              <Star className="w-8 h-8 text-zinc-300 dark:text-zinc-700 mx-auto mb-2 animate-spin" style={{ animationDuration: '4s' }} />
+              <p className="text-sm font-bold text-zinc-700 dark:text-zinc-300">No Reviews Yet</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 max-w-xs mx-auto">
+                After a conversation reaches 4+ messages in chat, both parties can leave rating reviews!
+              </p>
+            </div>
+          ) : (
+            <div className="flex gap-4 overflow-x-auto pb-4 pt-1 snap-x scrollbar-thin scrollbar-thumb-zinc-200 dark:scrollbar-thumb-zinc-800">
+              {[
+                ...reviews.map(r => ({ ...r, isProductReview: true })),
+                ...userReviews.map(r => ({ ...r, isProductReview: false }))
+              ]
+                .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+                .map((r, i) => {
+                  const ratingVal = r.rating || 5;
+                  const commentVal = r.comment || r.text || "No detailed feedback provided.";
+                  const dateString = r.createdAt ? new Date(r.createdAt).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : "Recent";
+                  
+                  return (
+                    <div 
+                      key={r.id || i} 
+                      className="bg-white dark:bg-zinc-900 border border-zinc-150 dark:border-zinc-800/80 rounded-2xl p-4 w-[290px] sm:w-[320px] shrink-0 snap-start shadow-xs hover:shadow-md transition relative flex flex-col justify-between"
+                    >
+                      <div>
+                        {/* Header details with potential admin actions */}
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-9 h-9 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-xs font-black text-zinc-700 dark:text-zinc-300 uppercase overflow-hidden border border-zinc-200/50 dark:border-zinc-700/50">
+                              {r.reviewerPhoto || r.userPhoto ? (
+                                <img src={r.reviewerPhoto || r.userPhoto} alt="Reviewer" className="w-full h-full object-cover" />
+                              ) : (
+                                <span>{(r.reviewerName || r.userName || "U")[0]}</span>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <h5 className="font-bold text-xs text-zinc-900 dark:text-zinc-100 truncate">
+                                {r.reviewerName || r.userName || "Verified User"}
+                              </h5>
+                              <span className="text-[10px] text-zinc-400 font-medium block">
+                                {dateString}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Review category label & admin buttons */}
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {isAdmin && (
+                              <div className="flex items-center gap-1">
+                                <button 
+                                  onClick={() => handleOpenAdminEdit(r, r.isProductReview)}
+                                  className="p-1 rounded bg-zinc-100 hover:bg-amber-100 text-zinc-500 hover:text-amber-600 dark:bg-zinc-850 dark:hover:bg-amber-950 transition"
+                                  title="Edit review"
+                                >
+                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                  </svg>
+                                </button>
+                                <button 
+                                  onClick={() => handleDeleteReview(r.id, r.isProductReview)}
+                                  className="p-1 rounded bg-zinc-100 hover:bg-rose-100 text-zinc-500 hover:text-rose-600 dark:bg-zinc-850 dark:hover:bg-rose-950 transition"
+                                  title="Delete review"
+                                >
+                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Stars */}
+                        <div className="flex items-center gap-0.5 mb-2.5">
+                          {Array.from({ length: 5 }).map((_, starIdx) => (
+                            <Star 
+                              key={starIdx} 
+                              className={`w-3.5 h-3.5 ${starIdx < ratingVal ? "text-amber-500 fill-amber-500" : "text-zinc-200 dark:text-zinc-800"}`} 
+                            />
+                          ))}
+                        </div>
+
+                        {/* Comment text */}
+                        <p className="text-xs text-zinc-650 dark:text-zinc-350 leading-relaxed line-clamp-3 italic mb-3">
+                          "{commentVal}"
+                        </p>
+                      </div>
+
+                      {/* Tag specifying source of review */}
+                      <div className="mt-auto flex items-center justify-between border-t border-zinc-100 dark:border-zinc-800/60 pt-2 text-[9px] font-bold uppercase tracking-wider">
+                        {r.isProductReview ? (
+                          <span className="text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/25 px-2 py-0.5 rounded-md">
+                            📦 Product Order
+                          </span>
+                        ) : (
+                          <span className="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/25 px-2 py-0.5 rounded-md">
+                            💬 Chat Trade
+                          </span>
+                        )}
+                        {r.chatId && !r.isProductReview && (
+                          <span className="text-zinc-400">P2P ID: {r.chatId.substring(0,6)}</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
+        </div>
+
+        {/* ADMIN EDIT REVIEW MODAL */}
+        {showAdminEditModal && adminEditingReview && (
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-inter">
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 w-full max-w-md shadow-2xl relative">
+              <h3 className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-wider mb-4">
+                Admin: Edit Merchant Review
+              </h3>
+              
+              <div className="mb-4">
+                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wide mb-1.5">Rating Stars</label>
+                <div className="flex gap-1.5">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button key={star} type="button" onClick={() => setAdminEditRating(star)}>
+                      <Star className={`w-8 h-8 ${star <= adminEditRating ? "text-amber-500 fill-amber-500" : "text-zinc-200 dark:text-zinc-800"}`} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-5">
+                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wide mb-1.5">Review Comment</label>
+                <textarea 
+                  value={adminEditText}
+                  onChange={(e) => setAdminEditText(e.target.value)}
+                  rows={4}
+                  className="w-full text-xs p-3 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-zinc-50 dark:bg-zinc-950 outline-none focus:ring-1 ring-amber-500 text-zinc-900 dark:text-zinc-100"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setShowAdminEditModal(false)}
+                  className="flex-1 py-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-xs font-bold rounded-xl text-zinc-900 dark:text-white"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleSaveAdminEdit}
+                  className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
           </div>
         )}
 

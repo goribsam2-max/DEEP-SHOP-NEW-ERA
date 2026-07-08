@@ -853,20 +853,22 @@ const ProductDetails: React.FC = () => {
     const filledCount = rating % 1 > 0.7 ? fullStars + 1 : fullStars;
     
     return (
-      <div className="flex items-center gap-0.5">
-        {Array.from({ length: 5 }).map((_, i) => {
-          const isFilled = i < filledCount;
-          return (
-            <Star
-              key={i}
-              className={`w-3.5 h-3.5 ${
-                isFilled ? "text-amber-500 fill-amber-500" : "text-zinc-300 dark:text-zinc-700"
-              }`}
-            />
-          );
-        })}
-        <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400 ml-1.5">
-          {rating > 0 ? `${rating} Store Rating` : "0.0 Store Rating (No reviews yet)"}
+      <div className="flex items-center gap-1.5 flex-nowrap overflow-hidden shrink-0">
+        <div className="flex items-center gap-0.5 shrink-0">
+          {Array.from({ length: 5 }).map((_, i) => {
+            const isFilled = i < filledCount;
+            return (
+              <Star
+                key={i}
+                className={`w-3.5 h-3.5 shrink-0 ${
+                  isFilled ? "text-amber-500 fill-amber-500" : "text-zinc-200 dark:text-zinc-800"
+                }`}
+              />
+            );
+          })}
+        </div>
+        <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400 truncate shrink-0 ml-1">
+          {rating > 0 ? `${rating} Rating` : "New Store (No reviews)"}
         </span>
       </div>
     );

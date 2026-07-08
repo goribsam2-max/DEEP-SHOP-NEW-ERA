@@ -696,14 +696,6 @@ const ManageVGHelpline: React.FC = () => {
                 >
                   <Phone className="w-5 h-5" />
                 </button>
-                <button 
-                  onClick={() => startCall('video')} 
-                  disabled={callState !== 'idle'} 
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50"
-                  title="Video Call User"
-                >
-                  <Video className="w-5 h-5" />
-                </button>
               </div>
             </div>
             
