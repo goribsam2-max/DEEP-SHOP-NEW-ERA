@@ -13,6 +13,13 @@ import { triggerHaptic } from "../../lib/haptics";
 export const ProductCard = ({ product, index }: { product: Product, index?: number }) => {
   const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const getActualCoinReward = (p: any): number => {
+    if (p.coinReward !== undefined && p.coinReward !== null && String(p.coinReward).trim() !== "") {
+      return Number(p.coinReward);
+    }
+    return getProductCoinReward(p.id);
+  };
+  const actualReward = getActualCoinReward(product);
   const hasDiscount =
     product.isOffer && product.offerPrice && product.offerPrice < product.price;
 
@@ -131,10 +138,10 @@ export const ProductCard = ({ product, index }: { product: Product, index?: numb
           {!isLarge && (
             <div className="absolute bottom-0 right-0 bg-white dark:bg-zinc-900 rounded-tl-[15px] pl-3 pt-2.5 pb-0 pr-0 flex items-center justify-center z-10">
               {/* DP Coin Badge */}
-              {getProductCoinReward(product.id) > 0 && (
+              {actualReward > 0 && (
                   <div className="absolute bottom-full right-2 mb-1 flex items-center bg-zinc-900/80 backdrop-blur-md rounded-full px-1.5 py-0.5">
                       <div className="h-3 w-3 flex items-center justify-center font-black text-[7px] text-amber-500 border border-amber-500 rounded-full mr-1 bg-white">D</div>
-                      <span className="text-[9px] font-bold text-amber-400">+{getProductCoinReward(product.id)}</span>
+                      <span className="text-[9px] font-bold text-amber-400">+{actualReward}</span>
                   </div>
               )}
               {/* Inverted curves using SVG */}
@@ -198,10 +205,10 @@ export const ProductCard = ({ product, index }: { product: Product, index?: numb
                   </span>
                 )}
               </div>
-              {getProductCoinReward(product.id) > 0 && (
+              {actualReward > 0 && (
                 <div className="mt-2 flex items-center bg-zinc-900/80 dark:bg-zinc-100 backdrop-blur-md rounded-full px-2 py-0.5 self-start">
                   <div className="h-3 w-3 flex items-center justify-center font-black text-[7px] text-amber-500 border border-amber-500 rounded-full mr-1 bg-white">D</div>
-                  <span className="text-[10px] font-bold text-amber-400 dark:text-amber-600">+{getProductCoinReward(product.id)}</span>
+                  <span className="text-[10px] font-bold text-amber-400 dark:text-amber-600">+{actualReward}</span>
                 </div>
               )}
             </div>

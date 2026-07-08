@@ -16,7 +16,10 @@ const BonusProducts: React.FC = () => {
     const q = query(collection(db, "products"), limit(50));
     const unsubscribe = onSnapshot(q, (snapshot) => {
         const allProds = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Product);
-        const rewardProds = allProds.filter(p => getProductCoinReward(p.id) > 0);
+        const rewardProds = allProds.filter(p => {
+          const coinReward = (p.coinReward !== undefined && p.coinReward !== null && String(p.coinReward).trim() !== "") ? Number(p.coinReward) : getProductCoinReward(p.id);
+          return coinReward > 0;
+        });
         setProducts(rewardProds);
         setLoading(false);
     });

@@ -135,9 +135,9 @@ export default function StoreProfile() {
       <div className="max-w-6xl mx-auto px-4 -mt-16 relative z-10">
         
         {/* Profile Card */}
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 shadow-xl border border-zinc-200/50 dark:border-zinc-800/80 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="flex items-center gap-5">
-            <Avatar className="h-20 w-20 border-4 border-white dark:border-zinc-900 shadow-md bg-zinc-100 dark:bg-zinc-800 shrink-0">
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 shadow-xl border border-zinc-200/50 dark:border-zinc-800/80 mb-8 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 flex-1 min-w-0">
+            <Avatar className="h-20 w-20 border-4 border-white dark:border-zinc-900 shadow-md bg-zinc-100 dark:bg-zinc-800 shrink-0 mx-auto sm:mx-0">
               {seller.photoURL || seller.avatarUrl ? (
                 <img src={seller.photoURL || seller.avatarUrl} alt={seller.shopName || "Seller"} className="w-full h-full object-cover" />
               ) : (
@@ -146,9 +146,9 @@ export default function StoreProfile() {
                 </AvatarFallback>
               )}
             </Avatar>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl md:text-2xl font-black text-zinc-900 dark:text-white uppercase tracking-tight whitespace-nowrap">
+            <div className="flex-1 min-w-0 text-center sm:text-left">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-2">
+                <h1 className="text-xl md:text-2xl font-black text-zinc-900 dark:text-white uppercase tracking-tight break-words">
                   {seller.shopName || seller.displayName || "Vibe Merchant"}
                 </h1>
                 {seller.kycStatus === "verified" ? (
@@ -161,7 +161,7 @@ export default function StoreProfile() {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-zinc-500 mt-1 whitespace-nowrap">
+              <p className="text-xs text-zinc-500 mt-1 break-words">
                 Shop number: {seller.shopNumber || "Online Presence"} • Registered Partner
               </p>
 
@@ -171,7 +171,7 @@ export default function StoreProfile() {
                   href={`https://tiktok.com/@${seller.tiktokId}`}
                   target="_blank"
                   referrerPolicy="no-referrer"
-                  className="inline-flex items-center gap-1.5 mt-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 px-2.5 py-1 rounded-full text-[11px] font-bold text-zinc-800 dark:text-zinc-200 transition whitespace-nowrap"
+                  className="inline-flex items-center gap-1.5 mt-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 px-2.5 py-1 rounded-full text-[11px] font-bold text-zinc-800 dark:text-zinc-200 transition break-all"
                 >
                   <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
                     <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.02 1.59 4.23.95 1.2 2.27 2 3.76 2.27v3.93c-1.89-.04-3.72-.67-5.26-1.78-.18-.13-.35-.27-.51-.42v6.19c.01 1.76-.48 3.48-1.42 4.93-.94 1.46-2.29 2.56-3.87 3.17-1.58.61-3.32.74-4.97.37-1.66-.36-3.17-1.28-4.32-2.61-1.16-1.34-1.81-3.05-1.87-4.81-.06-1.76.45-3.49 1.44-4.93.99-1.44 2.39-2.5 4.01-3.04 1.62-.54 3.38-.6 5.04-.17v4.03c-1.09-.27-2.25-.19-3.28.25-.1.04-.19.09-.29.15-.71.43-1.26 1.09-1.57 1.88-.31.79-.34 1.66-.08 2.47.26.81.79 1.5 1.5 1.96.71.46 1.56.66 2.4.55.84-.11 1.62-.53 2.19-1.19.57-.66.86-1.5.82-2.37V.02h.11z"/>
@@ -183,16 +183,16 @@ export default function StoreProfile() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-3 w-full md:w-auto shrink-0 justify-end">
+          <div className="flex flex-row md:flex-col items-center gap-3 w-full md:w-auto shrink-0 justify-center md:justify-end flex-wrap sm:flex-nowrap">
             <Button
               onClick={() => navigate(`/messages?chatId=${seller.id}&autoCall=true`)}
-              className="bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white rounded-xl text-xs font-extrabold px-4 py-2.5 flex items-center gap-2 border border-zinc-200 dark:border-zinc-700 h-10 whitespace-nowrap"
+              className="flex-1 sm:flex-initial bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white rounded-xl text-xs font-extrabold px-4 py-2.5 flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-700 h-10 whitespace-nowrap"
             >
               <Phone className="w-4 h-4 text-emerald-500 fill-emerald-500" /> Audio Call
             </Button>
             <Button
               onClick={() => navigate(`/messages?chatId=${seller.id}`)}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-extrabold px-4 py-2.5 flex items-center gap-2 h-10 whitespace-nowrap"
+              className="flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-extrabold px-4 py-2.5 flex items-center justify-center gap-2 h-10 whitespace-nowrap"
             >
               <MessageSquare className="w-4 h-4 text-white" /> Message Store
             </Button>

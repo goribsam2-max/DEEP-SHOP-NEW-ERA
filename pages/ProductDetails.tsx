@@ -220,6 +220,15 @@ const ProductDetails: React.FC = () => {
   const [notifying, setNotifying] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  const getActualCoinReward = (p: any): number => {
+    if (!p) return 0;
+    if (p.coinReward !== undefined && p.coinReward !== null && String(p.coinReward).trim() !== "") {
+      return Number(p.coinReward);
+    }
+    return getProductCoinReward(p.id);
+  };
+  const actualReward = getActualCoinReward(product);
+
   const [showSideCart, setShowSideCart] = useState(true);
   const [cartItems, setCartItems] = useState<any[]>([]);
 
@@ -957,13 +966,13 @@ const ProductDetails: React.FC = () => {
                     {/* Dynamic Price Corner Bottom Right */}
                     <div className="absolute bottom-0 right-0 bg-white dark:bg-zinc-950 rounded-tl-[32px] pl-6 pt-5 pb-4 pr-6 flex items-center justify-center min-w-[120px]">
                       {/* VG Coin Badge */}
-                      {getProductCoinReward(product.id) > 0 && (
+                      {actualReward > 0 && (
                         <div className="absolute bottom-full right-4 mb-2 flex items-center bg-zinc-900/80 backdrop-blur-md rounded-full px-2 py-1">
                           <div className="h-4 w-4 flex items-center justify-center font-black text-[9px] text-amber-500 border-2 border-amber-500 rounded-full mr-1.5 bg-white">
                             V
                           </div>
                           <span className="text-xs font-bold text-amber-400">
-                            +{getProductCoinReward(product.id)}
+                            +{actualReward}
                           </span>
                         </div>
                       )}
@@ -1085,10 +1094,10 @@ const ProductDetails: React.FC = () => {
               </div>
 
               <div className="mt-2 mb-6">
-                {getProductCoinReward(product.id) > 0 && (
+                {actualReward > 0 && (
                   <FlashSaleTimer
                     productId={product.id}
-                    reward={getProductCoinReward(product.id)}
+                    reward={actualReward}
                   />
                 )}
 

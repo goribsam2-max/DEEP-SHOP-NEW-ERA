@@ -95,7 +95,7 @@ const Payment: React.FC = () => {
     return <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950">Order not found.</div>;
   }
 
-  const amountToPay = order.paymentOption === "Full Payment" ? order.total : 150; // assuming default delivery is 150 if not specified
+  const amountToPay = order.paymentOption === "Full Payment" ? order.total : (order.advanceAmount !== undefined && order.advanceAmount !== null ? order.advanceAmount : 150);
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-[#000000] flex flex-col items-center py-12 px-4">
