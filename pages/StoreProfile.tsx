@@ -26,6 +26,7 @@ export default function StoreProfile() {
   const { formatPrice } = useRegion();
   const [seller, setSeller] = useState<SellerProfile | null>(null);
   const [products, setProducts] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -78,6 +79,24 @@ export default function StoreProfile() {
           setProducts(plist);
         }
 
+        // 3. Fetch Seller's Reviews (both by sellerId and falling back to productIds)
+        let rList: any[] = [];
+        const rQuery = query(
+          collection(db, "reviews"),
+          where("sellerId", "==", sellerId)
+        );
+        const rSnap = await getDocs(rQuery);
+        rList = rSnap.docs.map(d => d.data());
+
+        if (rList.length === 0 && plist.length > 0) {
+          const productIds = plist.map(p => p.id);
+          const allReviewsSnap = await getDocs(collection(db, "reviews"));
+          rList = allReviewsSnap.docs
+            .map(d => d.data())
+            .filter(r => productIds.includes(r.productId));
+        }
+        setReviews(rList);
+
       } catch (err) {
         console.error("Error loading store:", err);
       } finally {
@@ -124,6 +143,43 @@ export default function StoreProfile() {
   // Offers products
   const offerProducts = products.filter((p) => p.isOffer);
 
+  const getSellerRatingValue = () => {
+    if (seller && (seller as any).customRating !== undefined && (seller as any).customRating !== null && String((seller as any).customRating).trim() !== "") {
+      return Number((seller as any).customRating);
+    }
+    if (reviews && reviews.length > 0) {
+      const sum = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
+      return Number((sum / reviews.length).toFixed(1));
+    }
+    return 0;
+  };
+
+  const sellerRating = getSellerRatingValue();
+
+  const renderStars = (rating: number) => {
+    const fullStars = Math.floor(rating);
+    const filledCount = rating % 1 > 0.7 ? fullStars + 1 : fullStars;
+    
+    return (
+      <div className="flex items-center justify-center sm:justify-start gap-0.5 mt-2">
+        {Array.from({ length: 5 }).map((_, i) => {
+          const isFilled = i < filledCount;
+          return (
+            <Star
+              key={i}
+              className={`w-3.5 h-3.5 ${
+                isFilled ? "text-amber-500 fill-amber-500" : "text-zinc-300 dark:text-zinc-700"
+              }`}
+            />
+          );
+        })}
+        <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400 ml-1.5">
+          {rating > 0 ? `${rating} Store Rating` : "0.0 Store Rating"}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-20">
       {/* Upper Brand Cover */}
@@ -164,6 +220,7 @@ export default function StoreProfile() {
               <p className="text-xs text-zinc-500 mt-1 break-words">
                 Shop number: {seller.shopNumber || "Online Presence"} • Registered Partner
               </p>
+              {renderStars(sellerRating)}
 
               {/* TikTok ID link */}
               {seller.tiktokId && (

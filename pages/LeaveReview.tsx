@@ -60,6 +60,7 @@ const LeaveReview: React.FC = () => {
 
       await addDoc(collection(db, "reviews"), {
         productId,
+        sellerId: product.sellerId || "system",
         userId: auth.currentUser.uid,
         userName: auth.currentUser.displayName || "Vibe Customer",
         userPhoto: auth.currentUser.photoURL || "",

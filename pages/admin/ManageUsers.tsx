@@ -185,6 +185,23 @@ const ManageUsers: React.FC = () => {
     }
   };
 
+  const updateCustomRating = async (uid: string, ratingVal: number) => {
+    try {
+      // Keep rating between 0 and 5
+      const rating = Math.min(5, Math.max(0, Number(ratingVal.toFixed(1))));
+      await updateDoc(doc(db, "users", uid), { customRating: rating });
+      if (detailModal.user && detailModal.user.uid === uid) {
+        setDetailModal({
+          ...detailModal,
+          user: { ...detailModal.user, customRating: rating } as any
+        });
+      }
+      notify(`Custom Rating updated to ${rating}`, "success");
+    } catch (e) {
+      notify("Failed to update custom rating", "error");
+    }
+  };
+
   const toggleRegisteredBadge = async (uid: string, current: boolean) => {
     try {
       await updateDoc(doc(db, "users", uid), { isRegisteredBadge: !current });
@@ -518,6 +535,100 @@ const ManageUsers: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Custom Seller Rating Management */}
+            {detailModal.user.role === 'seller' && (
+              <div className="bg-zinc-50 dark:bg-[#1A1A1A] rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800">
+                <h4 className="text-xs font-semibold tracking-normal text-zinc-900 dark:text-zinc-100 mb-6 flex items-center gap-2">
+                  <Icon name="star" className="text-amber-500" solid={true} />
+                  Seller Star Rating (Manage)
+                </h4>
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-zinc-500">Current Rating</p>
+                      <p className="text-2xl font-black text-zinc-900 dark:text-white mt-1">
+                        {((detailModal.user as any).customRating !== undefined && (detailModal.user as any).customRating !== null) 
+                          ? (detailModal.user as any).customRating 
+                          : "0 (Using reviews default)"}
+                      </p>
+                    </div>
+                    {/* Render visual stars */}
+                    <div className="flex gap-1">
+                      {Array.from({ length: 5 }).map((_, idx) => {
+                        const currentVal = (detailModal.user as any).customRating || 0;
+                        const isFilled = idx < Math.round(currentVal);
+                        return (
+                          <Icon 
+                            key={idx} 
+                            name="star" 
+                            solid={isFilled}
+                            className={`w-5 h-5 ${isFilled ? "text-amber-500" : "text-zinc-300 dark:text-zinc-700"}`} 
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 items-center">
+                    <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider shrink-0">Adjust Rating:</p>
+                    <div className="flex gap-2 w-full sm:w-auto">
+                      <button
+                        onClick={() => {
+                          const current = (detailModal.user as any).customRating || 0;
+                          updateCustomRating(detailModal.user!.uid, current - 0.5);
+                        }}
+                        className="flex-1 sm:flex-initial px-4 py-2.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/20 dark:hover:bg-rose-900/30 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/30 rounded-xl text-xs font-bold transition-all"
+                      >
+                        -0.5 Stars
+                      </button>
+                      <button
+                        onClick={() => {
+                          const current = (detailModal.user as any).customRating || 0;
+                          updateCustomRating(detailModal.user!.uid, current - 0.1);
+                        }}
+                        className="flex-1 sm:flex-initial px-4 py-2.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/20 dark:hover:bg-rose-900/30 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/30 rounded-xl text-xs font-bold transition-all"
+                      >
+                        -0.1 Stars
+                      </button>
+                      <button
+                        onClick={() => {
+                          const current = (detailModal.user as any).customRating || 0;
+                          updateCustomRating(detailModal.user!.uid, current + 0.1);
+                        }}
+                        className="flex-1 sm:flex-initial px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/20 dark:hover:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30 rounded-xl text-xs font-bold transition-all"
+                      >
+                        +0.1 Stars
+                      </button>
+                      <button
+                        onClick={() => {
+                          const current = (detailModal.user as any).customRating || 0;
+                          updateCustomRating(detailModal.user!.uid, current + 0.5);
+                        }}
+                        className="flex-1 sm:flex-initial px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/20 dark:hover:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30 rounded-xl text-xs font-bold transition-all"
+                      >
+                        +0.5 Stars
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 items-center">
+                    <button
+                      onClick={() => updateCustomRating(detailModal.user!.uid, 0)}
+                      className="px-4 py-2 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl text-xs font-bold transition-all"
+                    >
+                      Reset to 0
+                    </button>
+                    <button
+                      onClick={() => updateCustomRating(detailModal.user!.uid, 5)}
+                      className="px-4 py-2 bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 rounded-xl text-xs font-bold transition-all"
+                    >
+                      Set to 5.0
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="bg-zinc-50 dark:bg-[#1A1A1A] rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800">
               <h4 className="text-xs font-semibold tracking-normal text-zinc-900 dark:text-zinc-100 mb-6">
