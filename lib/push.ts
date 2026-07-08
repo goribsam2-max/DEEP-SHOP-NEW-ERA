@@ -19,7 +19,7 @@ export async function unsubscribeFromWebPush() {
     }
 }
 
-export async function subscribeToWebPush() {
+export async function subscribeToWebPush(uidParam?: string) {
     try {
         if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
             console.log("Web Push not supported");
@@ -101,7 +101,7 @@ export async function subscribeToWebPush() {
             });
             }
 
-            const uid = auth.currentUser?.uid;
+            const uid = uidParam || auth.currentUser?.uid;
             
             // Save subscription to backend using API to avoid permission issues
             try {

@@ -1,4 +1,12 @@
 // Standard Web Push Handler for VAPID implementation
+self.addEventListener('install', function(event) {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', function(event) {
+  event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener('push', function(event) {
   // If no data, do nothing
   if (!event.data) return;

@@ -338,7 +338,7 @@ export default function Messages() {
     });
     
     // Send a real push notification to the recipient!
-    const recipientId = activeChat.otherUser?.id;
+    const recipientId = activeChat.otherUser?.id || activeChat.otherUser?.uid;
     if (recipientId && recipientId !== "system") {
       fetch("/api/send-push-user", {
         method: "POST",
@@ -466,7 +466,7 @@ export default function Messages() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: activeChat.otherUser.id,
+          userId: activeChat.otherUser?.id || activeChat.otherUser?.uid,
           title: `Incoming ${type === 'audio' ? 'Voice' : 'Video'} Call...`,
           body: `${user.displayName || 'Someone'} is calling you on Vibe Gadget.`,
           link: `/messages?chatId=${user.uid}&autoCall=true`

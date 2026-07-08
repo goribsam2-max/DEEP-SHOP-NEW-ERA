@@ -552,7 +552,7 @@ const AppContent: React.FC = () => {
             
             // If notifications are granted, ensure they are subscribed in backend
             if ('Notification' in window && Notification.permission === 'granted') {
-              subscribeToWebPush();
+              subscribeToWebPush(currentUser.uid);
             }
           } else {
             // Auto-create document if missing to avoid orphaned auth users
@@ -753,7 +753,7 @@ const App: React.FC = () => {
     // This restores push subscriptions for returning users
     const unsubscribe = auth.onAuthStateChanged((user) => {
         if ('Notification' in window && Notification.permission === 'granted') {
-           subscribeToWebPush().catch(console.error);
+           subscribeToWebPush(user?.uid).catch(console.error);
         }
     });
     return () => unsubscribe();

@@ -471,8 +471,33 @@ export default function CheckoutPage() {
             })
           }).catch(err => console.error("Seller push notification failed:", err));
         });
+
+        // Notify admins of new order
+        fetch("/api/send-push-admin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: "New Customer Order! 🛍️",
+            body: `A new order was placed by ${activeAddress.name} for ৳${total}.`,
+            link: "/admin/orders"
+          })
+        }).catch(err => console.error("Admin order push failed:", err));
+
+        // Notify the customer themselves
+        if (user?.uid) {
+          fetch("/api/send-push-user", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userId: user.uid,
+              title: "Order Placed Successfully! 🎉",
+              body: `Thank you for shopping! Your order for ৳${total} has been received.`,
+              link: "/my-orders"
+            })
+          }).catch(err => console.error("Customer order push failed:", err));
+        }
       } catch (e) {
-        console.error("Failed to send seller push notification:", e);
+        console.error("Failed to send order push notifications:", e);
       }
 
       if (orderData.affiliateRef) {

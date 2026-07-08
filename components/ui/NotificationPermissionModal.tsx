@@ -20,7 +20,7 @@ export function NotificationPermissionModal() {
           // Ensure they are subscribed if permission is already granted
           const ensureSubscribed = async () => {
              if (localStorage.getItem('vibe_push_enabled') !== 'true') {
-                 const result: any = await subscribeToWebPush();
+                 const result: any = await subscribeToWebPush(auth.currentUser?.uid);
                  if (result && !result.error) {
                      localStorage.setItem('vibe_push_enabled', 'true');
                  }
@@ -39,7 +39,7 @@ export function NotificationPermissionModal() {
 
   const handleAllow = async () => {
     try {
-      const result: any = await subscribeToWebPush();
+      const result: any = await subscribeToWebPush(auth.currentUser?.uid);
       if (result && !result.error) {
          localStorage.setItem('vibe_push_enabled', 'true');
          notify('Push notifications enabled!', 'success');

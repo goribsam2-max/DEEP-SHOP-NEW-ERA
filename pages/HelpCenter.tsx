@@ -193,8 +193,8 @@ const HelpCenter: React.FC = () => {
   }, [deptParam]);
 
   useEffect(() => {
-    if ('Notification' in window) Notification.requestPermission().then(perm => { if (perm === 'granted') subscribeToWebPush(); });
-  }, []);
+    if ('Notification' in window) Notification.requestPermission().then(perm => { if (perm === 'granted') subscribeToWebPush(user?.uid); });
+  }, [user]);
 
   const showNotification = (title: string, body: string) => {
     if ('Notification' in window && Notification.permission === 'granted') {
