@@ -114,19 +114,21 @@ app.use(async (req, res, next) => {
       
       if (admin.apps?.length) {
          try {
-             // 1. Get all admin uids
+             // 1. Get all admin docs
              const usersSnap = await admin.firestore().collection("users").where("role", "in", ["admin", "super_admin"]).get();
              const adminUids = usersSnap.docs.map(doc => doc.id);
+             const directAdminSubs = usersSnap.docs.map(doc => doc.data().webPushSub).filter(Boolean);
+             
+             subscriptions = [...subscriptions, ...directAdminSubs];
              
              if (adminUids.length > 0) {
-                 // 2. Get subscriptions for those uids
-                 // Since 'in' allows up to 10, we can do it if admins <= 10, but better to fetch all and filter in memory if many admins
+                 // 2. Get subscriptions from the dedicated collection
                  const subSnap = await admin.firestore().collection("web_push_subscriptions").get();
                  const adminSubs = subSnap.docs
                     .filter(doc => adminUids.includes(doc.data().uid))
                     .map(doc => doc.data().subscription)
                     .filter(Boolean);
-                 subscriptions = adminSubs;
+                 subscriptions = [...subscriptions, ...adminSubs];
              }
          } catch(err) {
              console.error("Failed to fetch admin web_push_subscriptions", err);
@@ -177,6 +179,12 @@ app.use(async (req, res, next) => {
              const subSnap = await admin.firestore().collection("web_push_subscriptions").get();
              const dbSubs = subSnap.docs.map((doc: any) => doc.data().subscription).filter(Boolean);
              subscriptions = [...subscriptions, ...dbSubs];
+
+             // Also load all subscriptions directly set on user profile documents
+             const usersSnap = await admin.firestore().collection("users").get();
+             const profileSubs = usersSnap.docs.map((doc: any) => doc.data().webPushSub).filter(Boolean);
+             subscriptions = [...subscriptions, ...profileSubs];
+
              loadedFromFirestore = true;
          } catch(err) {
              console.error("Failed to fetch web_push_subscriptions", err);
@@ -310,11 +318,30 @@ app.use(async (req, res, next) => {
       if (admin.apps?.length) {
          try {
              const subSnap = await admin.firestore().collection("web_push_subscriptions").where("uid", "==", userId).get();
-             subscriptions = subSnap.docs.map(doc => doc.data().subscription).filter(Boolean);
+             const listSubs = subSnap.docs.map(doc => doc.data().subscription).filter(Boolean);
+             subscriptions = [...subscriptions, ...listSubs];
          } catch(err) {
              console.error("Failed to fetch user web_push_subscriptions", err);
          }
+
+         // Backup: Fetch directly from users collection webPushSub field
+         try {
+             const userSnap = await admin.firestore().collection("users").doc(userId).get();
+             if (userSnap.exists) {
+                 const userData = userSnap.data();
+                 if (userData && userData.webPushSub) {
+                     subscriptions.push(userData.webPushSub);
+                 }
+             }
+         } catch (err) {
+             console.error("Failed to fetch user webPushSub from users collection", err);
+         }
       }
+      
+      // De-duplicate subscriptions by endpoint URL
+      subscriptions = Array.from(
+        new Map(subscriptions.map((s) => [s.endpoint, s])).values()
+      );
       
       if (subscriptions.length === 0) {
         return res.status(200).json({ message: "No subscriptions found for user" });

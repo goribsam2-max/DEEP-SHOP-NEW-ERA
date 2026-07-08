@@ -1208,69 +1208,65 @@ const ProductDetails: React.FC = () => {
 
               {/* Seller Information */}
               <div className="mt-8 pt-6 border-t border-zinc-200 dark:border-zinc-800">
-                <div className="p-3 sm:p-4 bg-white dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                  {/* Row containing avatar, shop name, message button, and visit store button */}
-                  <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap w-full">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Avatar className="h-12 w-12 border-2 border-emerald-100 dark:border-emerald-900/50 bg-zinc-100 dark:bg-zinc-800 shrink-0 animate-none">
-                        {sellerInfo?.photoURL ? (
-                          <img src={sellerInfo.photoURL} alt={sellerInfo.shopName || "Seller"} className="w-full h-full object-cover rounded-full" />
-                        ) : (
-                          <AvatarFallback className="bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-zinc-50 font-bold">
-                            {(sellerInfo?.shopName || sellerInfo?.displayName || "VG").slice(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        )}
-                      </Avatar>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap">
-                          <p className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm sm:text-base truncate">
-                            {sellerInfo?.shopName || sellerInfo?.displayName || "Vibe Gadget"}
-                          </p>
-                          {sellerInfo ? (
-                            sellerInfo.kycStatus === "verified" ? (
-                              <VerifiedIcon className="w-4 h-4 text-emerald-500 shrink-0" />
-                            ) : (
-                              <div className="inline-flex items-center gap-1 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-rose-100 dark:border-rose-900/30 whitespace-nowrap">
-                                <AlertCircle className="w-3 h-3" /> Not Verified
-                              </div>
-                            )
-                          ) : (
+                <div className="p-4 bg-white dark:bg-zinc-900/80 backdrop-blur-sm rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col gap-4">
+                  {/* Top row: Avatar & Shop Details */}
+                  <div className="flex items-center gap-3 w-full">
+                    <Avatar className="h-12 w-12 border-2 border-emerald-100 dark:border-emerald-900/50 bg-zinc-100 dark:bg-zinc-800 shrink-0">
+                      {sellerInfo?.photoURL ? (
+                        <img src={sellerInfo.photoURL} alt={sellerInfo.shopName || "Seller"} className="w-full h-full object-cover rounded-full" />
+                      ) : (
+                        <AvatarFallback className="bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-zinc-50 font-bold">
+                          {(sellerInfo?.shopName || sellerInfo?.displayName || "VG").slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <p className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm sm:text-base truncate">
+                          {sellerInfo?.shopName || sellerInfo?.displayName || "Vibe Gadget"}
+                        </p>
+                        {sellerInfo ? (
+                          sellerInfo.kycStatus === "verified" ? (
                             <VerifiedIcon className="w-4 h-4 text-emerald-500 shrink-0" />
-                          )}
-                        </div>
+                          ) : (
+                            <div className="inline-flex items-center gap-1 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-rose-100 dark:border-rose-900/30 whitespace-nowrap">
+                              <AlertCircle className="w-3 h-3" /> Not Verified
+                            </div>
+                          )
+                        ) : (
+                          <VerifiedIcon className="w-4 h-4 text-emerald-500 shrink-0" />
+                        )}
                       </div>
-                    </div>
-                    
-                    {/* Message & Visit Store Buttons on the same line */}
-                    <div className="flex items-center gap-2 shrink-0 ml-auto sm:ml-0">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="rounded-full w-9 h-9 flex items-center justify-center border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 shrink-0 shadow-sm"
-                        onClick={() => {
-                          const targetChatId = product?.sellerId || "system";
-                          navigate(`/messages?chatId=${targetChatId}`);
-                        }}
-                      >
-                        <MessageSquare className="w-4 h-4 text-[#EF8020]" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-zinc-800 dark:text-zinc-200 dark:text-zinc-300 text-xs font-bold px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-xl"
-                        onClick={() => {
-                          const targetSellerId = product?.sellerId || "system";
-                          navigate(`/store/${targetSellerId}`);
-                        }}
-                      >
-                        Visit Store &rarr;
-                      </Button>
+                      <div className="mt-1">
+                        {renderStars(sellerRating)}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Rating row below */}
-                  <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800/50 flex items-center justify-between">
-                    {renderStars(sellerRating)}
+                  {/* Bottom row: Action Buttons */}
+                  <div className="flex items-center gap-2.5 w-full pt-1">
+                    <Button
+                      variant="outline"
+                      className="flex-1 h-10 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 shadow-sm rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5"
+                      onClick={() => {
+                        const targetChatId = product?.sellerId || "system";
+                        navigate(`/messages?chatId=${targetChatId}`);
+                      }}
+                    >
+                      <MessageSquare className="w-4 h-4 text-[#EF8020]" />
+                      <span>Message Seller</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1 h-10 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-850 dark:hover:bg-zinc-800 border-none text-zinc-900 dark:text-zinc-100 shadow-sm rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
+                      onClick={() => {
+                        const targetSellerId = product?.sellerId || "system";
+                        navigate(`/store/${targetSellerId}`);
+                      }}
+                    >
+                      <span>Visit Store</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
               </div>
